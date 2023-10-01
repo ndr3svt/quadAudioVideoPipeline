@@ -75,18 +75,14 @@ public class SecondApplet extends PApplet {
   public void setup() {
     background(255);
     frameRate(30);
+
   }
 
   public void draw() {
-    // background(0);
-    image(myMovie,0,0,width,height);
-    // fill(255, 0, 99);
-    // if (play)
-      // ellipse(random(width), random(height), 50, 50); // Draw a circle in the second window
-    // else
-      // ellipse(width / 2, height / 2, 50, 50); // Draw a circle in the second window
-    // textSize(24);
-    // text("hello w o r l d", sharedMouseX, sharedMouseY);
+    background(255,0,99);
+     float rr = 0.5625;
+     float dynHeight = width*rr;
+    image(myMovie,0,(height - dynHeight)/2,width,dynHeight);
     textSize(12);
     text("fr:"+frameRate,20,20);
 
