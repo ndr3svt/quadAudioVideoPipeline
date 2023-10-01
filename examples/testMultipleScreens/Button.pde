@@ -8,7 +8,7 @@ class Button {
     this.y = y;
     this.w = w;
     this.h = h;
-    this.isPressed = false; // initial state is Released
+    this.isPressed = true; // initial state is Released
   }
   
   void display() {
