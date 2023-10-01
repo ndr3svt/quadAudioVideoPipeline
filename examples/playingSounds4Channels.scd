@@ -85,10 +85,28 @@ fork {
 
 
 
+(
+// Load the sounds
+~pathToSounds = PathName(thisProcess.nowExecutingPath).pathOnly++"testMultipleScreens/data/";
+~leftF = Buffer.read(s, ~pathToSounds++"mono1.wav"); // remember to free the buffer later.
+~rightF = Buffer.read(s, ~pathToSounds++"mono2.wav"); // remember to free the buffer later.
+~rightR = Buffer.read(s, ~pathToSounds++"mono2.wav"); // remember to free the buffer later.
+~leftR = Buffer.read(s, ~pathToSounds++"mono1.wav"); // remember to free the buffer later.
+
+// Define the SynthDef
+ SynthDef(\playSound,{|out=0, bufnum=0, gate=1, rate =1, start=0|
+	var sound = PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum)*rate,1.0, start, loop: 0.0);
+	var env = EnvGen.ar(Env.adsr(0.01,0.153,0.25,0.25),gate,Done.freeSelf); // 2 let's the synth free itself
+	// var env = EnvGen.ar( Env.perc(0.01,0.5), gate,1.0, doneAction:2);
+	Out.ar(out,sound*env);
+		// PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), loop: 1.0)
+}).add;
 
 
+~firstSound = Synth(\playSound,[\out,0,\bufnum,~leftF,\rate,[0.95,1.5,2].choose]);
+~secondSound = Synth(\playSound,[\out,1,\bufnum,~leftR,\rate,[0.95,1.75].choose]);
 
-
+)
 // Initialize OSC Server
 (
 p = OSCFunc({ |msg, time, addr, recvPort|
@@ -100,11 +118,23 @@ p = OSCFunc({ |msg, time, addr, recvPort|
 
     // If you sent a frequency, for example, you might handle it like this:
     if (msg[0] == '/freq', {
-        { SinOsc.ar(msg[1] * 1.0) * 0.5 }.play;
+        // { SinOsc.ar(msg[1] * 1.0) * 0.5 }.play;
+
+		~firstSound = Synth(\playSound,[\out,0,\bufnum,~rightF,\rate,[0.95,1.5,2,5,0.5].choose]);
+		~secondSound = Synth(\playSound,[\out,1,\bufnum,~rightR,\rate,[0.95,1.5,3,9,0.25].choose]);
     });
 }, '/freq', nil, 12344); // Listening on port 12345 for messages with address pattern '/freq'
 )
 
+
+s.boot
+p
+p.free
+s.meter
+Server.killAll
+s.quit
+localhost.killAll
+OSCFunc.clear
 
 
 s.scope(9)
