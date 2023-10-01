@@ -1,8 +1,13 @@
 
-s.boot;
 
+s.options.numOutputBusChannels = 4;
+s.boot;
+s.options.numOutputBusChannels
+
+
+/*s.reboot
 s.quit
-s.scope
+s.scope*/
 
 // Define the SynthDef
 (
@@ -96,17 +101,39 @@ fork {
 // Define the SynthDef
  SynthDef(\playSound,{|out=0, bufnum=0, gate=1, rate =1, start=0|
 	var sound = PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum)*rate,1.0, start, loop: 0.0);
-	var env = EnvGen.ar(Env.adsr(0.01,0.153,0.25,0.25),gate,Done.freeSelf); // 2 let's the synth free itself
-	// var env = EnvGen.ar( Env.perc(0.01,0.5), gate,1.0, doneAction:2);
+	// var env = EnvGen.ar(Env.adsr(0.01,0.353,0.035,0.025),gate, 1.0,0.0,1.0, doneAction:2); // 2 let's the synth free itself
+	var env = EnvGen.ar( Env.perc(0.01,5.5), gate,1.0, doneAction:2);
 	Out.ar(out,sound*env);
 		// PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), loop: 1.0)
 }).add;
 
 
 ~firstSound = Synth(\playSound,[\out,0,\bufnum,~leftF,\rate,[0.95,1.5,2].choose]);
-~secondSound = Synth(\playSound,[\out,1,\bufnum,~leftR,\rate,[0.95,1.75].choose]);
+~secondSound = Synth(\playSound,[\out,3,\bufnum,~leftR,\rate,[0.95,1.75].choose]);
 
 )
+
+
+(
+Tdef(\seqPl,{
+
+				~firstTrack = Synth(\playSound,[\out,0,\bufnum,~rightF,\rate,[0.7,0.9,2,3].choose]);
+		[0.025,0.1,0.05,0.25,0.5].choose.wait;
+		~secondTrack = Synth(\playSound,[\out,1,\bufnum,~rightR,\rate,[0.7,0.9,2,3].choose]);
+		[0.025,0.1,0.05,0.25,0.5].choose.wait;
+		~thirdTrack = Synth(\playSound,[\out,2,\bufnum,~rightF,\rate,[0.7,0.9,2,3].choose]);
+		[0.025,0.1,0.05,0.25,0.5].choose.wait;
+		~fourthTrack = Synth(\playSound,[\out,3,\bufnum,~rightR,\rate,[0.7,0.9,2,3].choose]);
+		[0.025,0.1,0.05,0.25,0.5].choose.wait;
+
+	}
+)
+)
+Tdef(\seqPl).play(quant:0);
+
+
+
+
 // Initialize OSC Server
 (
 p = OSCFunc({ |msg, time, addr, recvPort|
@@ -119,9 +146,8 @@ p = OSCFunc({ |msg, time, addr, recvPort|
     // If you sent a frequency, for example, you might handle it like this:
     if (msg[0] == '/freq', {
         // { SinOsc.ar(msg[1] * 1.0) * 0.5 }.play;
+		Tdef(\seqPl).play(quant:0);
 
-		~firstSound = Synth(\playSound,[\out,0,\bufnum,~rightF,\rate,[0.95,1.5,2,5,0.5].choose]);
-		~secondSound = Synth(\playSound,[\out,1,\bufnum,~rightR,\rate,[0.95,1.5,3,9,0.25].choose]);
     });
 }, '/freq', nil, 12344); // Listening on port 12345 for messages with address pattern '/freq'
 )
