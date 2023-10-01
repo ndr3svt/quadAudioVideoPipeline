@@ -4,7 +4,8 @@ s.options.numOutputBusChannels = 4;
 s.boot;
 s.options.numOutputBusChannels
 
-
+s.aliveThreadIsRunning
+s.remove(p)
 /*s.reboot
 s.quit
 s.scope*/
